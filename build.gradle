@@ -21,8 +21,11 @@ ext {
 group = 'org.igniterealtime.jbosh'
 sourceCompatibility = 1.7
 version = shortVersion
+version = shortVersion
 if (isSnapshot) {
-	version += '-SNAPSHOT'
+//	version += '-SNAPSHOT'
+	def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
+	version += '-' + gitCommitHash
 }
 
 description = """\
@@ -154,6 +157,20 @@ task compileAndroid(type: JavaCompile) {
 }
 
 test { dependsOn compileAndroid }
+
+// Does install unique snapshosts (and release)s in the local maven
+// repository, unlike the 'install' task.
+// You can specify the path of the local maven repository using 'maven.repo.local', e.g.
+// gradle uploadLocal -Dmaven.repo.local=/var/www/repo
+task uploadLocal(type: Upload) {
+	description "Uploads artifacts into the local maven repositories URL."
+	configuration = configurations['archives']
+	repositories {
+		mavenDeployer {
+			repository url: repositories.mavenLocal().url
+		}
+	}
+}
 
 artifacts {
 	archives sourcesJar
